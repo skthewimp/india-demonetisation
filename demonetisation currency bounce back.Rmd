@@ -1,0 +1,118 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
+```{r}
+setwd('~/Documents/work/data work')
+```
+```{r}
+money <- read.csv('~/Downloads/WSS_Table_No._01___Reserve_Bank_of_India_-_Liabilities_and_Assets-3.csv')
+```
+
+```{r}
+head(money)
+```
+
+```{r}
+money <- money[money$Item.Desc.WSS=='1 Notes Issued', ]
+```
+
+```{r}
+head(money)
+```
+
+```{r}
+money$Week <- as.Date(substr(as.character(money$Week),1,10))
+```
+
+```{r}
+head(money)
+```
+
+```{r}
+require(ggplot2)
+```
+
+```{r}
+qplot(Week,Amount,data=money, geom=c('point', 'line'), ylab='Amount (Rs Billion)') + theme_bw(16)
+```
+
+```{r}
+money <- money[with(money,order(Week)),]
+```
+
+```{r}
+money$Diff <- c(0, money$Amount[-1] - money$Amount[-nrow(money)])
+```
+```{r}
+head(money)
+```
+
+```{r}
+money$Growth <- money$Diff / money$Amount
+```
+
+```{r}
+head(money)
+```
+
+```{r}
+(1+mean(money[money$Week > as.Date('2017-06-30'),'Growth']))^52-1
+```
+
+```{r}
+(1+mean(money[money$Week < as.Date('2016-10-15') & money$Week > as.Date('2016-06-29'),'Growth']))^52-1
+```
+
+```{r}
+tail(money[money$Week < as.Date('2016-11-08'),])
+```
+
+```{r}
+17514 * (1+0.07753982) / 15928.60
+```
+
+```{r}
+tail(money)
+```
+
+```{r}
+(1+0.2119242) / (1+0.07753982)
+```
+
+```{r}
+log(17514 * (1+0.07753982) / 15928.60) / log((1+0.2119242) / (1+0.07753982))
+```
+
+```{r}
+15928*((1+0.2119242))^(1.44)
+```
+
+```{r}
+17514*((1.07753982)^(2.44))
+```
+
+```{r}
+money$Increase <- money$Growth>0
+```
+
+```{r}
+mean(money[money$Week > as.Date('2016-01-01') & money$Week < as.Date('2016-11-01'),'Increase'])
+```
+
+```{r}
+mean(money[money$Week > as.Date('207-06-30'),'Increase'])
+```
+

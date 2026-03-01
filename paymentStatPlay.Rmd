@@ -1,0 +1,124 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Figure out month and year
+```{r}
+atmstats %>% 
+  mutate(
+    Period=str_replace_all(Period, '[^A-Za-z0-9]', ' '),
+    Year=parse_number(Period),
+    Year=ifelse(Year < 100, Year+2000, Year)
+  ) %>%
+  crossing(
+    tibble(Name=format(ISOdate(2004,1:12,1),"%B"), Number=1:12)
+  ) %>%
+  filter(str_detect(Period, Name)) %>%
+  mutate(Month=as.Date(paste(Year, Number, '01', sep='-'))) %>%
+  select(-Year, -Name, -Number, -srno, -Period) %>%
+  gather(Quantity, Value, -bankname, -Month) %>%
+  mutate(
+    bankname=str_to_title(bankname),
+    bankname=str_replace_all(bankname, '[^a-zA-Z]', '')
+    ) ->
+  paymentIndicators
+  
+
+```
+
+
+Take off in number of POS machines post demonetisation
+```{r}
+paymentIndicators %>%
+  filter(Quantity=='pos_online_') %>%
+  inner_join(
+    (.) %>%
+      group_by(bankname) %>%
+      summarise(MaxVal=max(Value)) %>%
+      arrange(-MaxVal) %>%
+      head(16),
+    by='bankname'
+  ) %>%
+  ggplot(aes(x=Month, y=Value)) + geom_point() + geom_line() + facet_wrap(~bankname, scales='free_y') + geom_vline(xintercept = as.Date('2016-11-08'), col='red') + theme_minimal()
+  
+```
+
+```{r}
+paymentIndicators %>%
+  filter(Quantity=='debitcards_nooftransactionsactuals_pos_' & Month < as.Date('2019-07-01')) %>%
+  inner_join(
+    (.) %>%
+      group_by(bankname) %>%
+      summarise(MaxVal=max(Value)) %>%
+      arrange(-MaxVal) %>%
+      head(16),
+    by='bankname'
+  ) %>%
+  ggplot(aes(x=Month, y=Value)) + geom_point() + geom_line() + facet_wrap(~bankname, scales='free_y') + geom_vline(xintercept = as.Date('2016-11-08'), col='red') + theme_minimal()
+```
+
+Total number of credit cards
+```{r}
+paymentIndicators %>%
+  filter(Quantity=='creditcards_noofoutstandingcardsasattheendofthemonth_srno_' & Month < as.Date('2019-07-01')) %>%
+  mutate(bankname=str_to_lower(bankname)) %>%
+  inner_join(
+    (.) %>%
+      group_by(bankname) %>%
+      summarise(MaxVal=max(Value)) %>%
+      arrange(-MaxVal) %>%
+      head(16),
+    by='bankname'
+  ) %>%
+  ggplot(aes(x=Month, y=Value)) + geom_point() + geom_line() + facet_wrap(~bankname, scales='free_y') + geom_vline(xintercept = as.Date('2016-11-08'), col='red') + theme_minimal()
+```
+
+```{r}
+paymentIndicators %>%
+  filter(Quantity=='debitcards_amountoftransactionslakh_atm_' & Month < as.Date('2019-07-01')) %>%
+  mutate(bankname=str_to_lower(bankname)) %>%
+  inner_join(
+    (.) %>%
+      group_by(bankname) %>%
+      summarise(MaxVal=max(Value)) %>%
+      arrange(-MaxVal) %>%
+      head(16),
+    by='bankname'
+  ) %>%
+  ggplot(aes(x=Month, y=Value)) + geom_point() + geom_line() + facet_wrap(~bankname, scales='free_y') + geom_vline(xintercept = as.Date('2016-11-08'), col='red') + theme_minimal()
+```
+
+```{r}
+paymentIndicators %>%
+  filter(Quantity=='pos_online_' & Month < as.Date('2019-07-01')) %>%
+  group_by(Month) %>%
+  summarise(Value=sum(Value, na.rm=T)) %>%
+  ungroup() %>%
+  ggplot(aes(x=Month, y=Value)) + geom_point() + geom_line() + geom_vline(xintercept = as.Date('2016-11-08'), col='red') + theme_minimal()
+```
+
+```{r}
+paymentIndicators %>%
+  filter(Quantity=='debitcards_noofoutstandingcardsasattheendofthemonth_pos_' & Month < as.Date('2019-07-01')) %>%
+  group_by(Month) %>%
+  summarise(Value=sum(Value, na.rm=T)) %>%
+  ungroup() %>%
+  ggplot(aes(x=Month, y=Value)) + geom_point() + geom_line() + geom_vline(xintercept = as.Date('2016-11-08'), col='red') + theme_minimal()
+```
+
+```{r}
+paymentIndicators %>%
+  filter(Quantity=='debitcards_amountoftransactionslakh_pos_' & Month < as.Date('2019-07-01')) %>%
+  group_by(Month) %>%
+  summarise(Value=sum(Value, na.rm=T)) %>%
+  ungroup() %>%
+  ggplot(aes(x=Month, y=Value)) + geom_point() + geom_line() + geom_vline(xintercept = as.Date('2016-11-08'), col='red') + theme_minimal()
+```
+
+```{r}
+names(atmstats)
+```
+
+
+
